@@ -9,7 +9,6 @@ function connect() {
 }
 
 function get_point() {
-    usleep(2000000);
     connect();
     $query = 'SELECT * FROM points order by created desc limit 1';
     $result = pg_query($query) or die('Ошибка запроса: ' . pg_last_error());
@@ -36,14 +35,14 @@ function get_point() {
     //нормальное ускорение
     $a_default = rand(0, 100);
     // delta t
-    $t = 0.02;
+    $t = 1;
     
     //определение скорости
     $vx = $vx0 + $a*$t;
     $vy = $vy0 + $a*$t;
     
     $a_all = sqrt($a*$a+$a_default*$a_default);
-	    
+
     if(($vx>$vx0 && $vy>$vy0) && ($vx >= 0 && $vy >= 0)){
 	$posx = $posx0 + $vx0*$t + ($a_all*$t*$t)/2;
 	$posy = $posy0 + $vy0*$t + ($a_all*$t*$t)/2;
@@ -53,7 +52,8 @@ function get_point() {
 	$posy = $posy0 + $vy0*$t - ($a_all*$t*$t)/2;
     }
     else {
-	$vx = 1;
+	$vx = 10;
+	
 	$posx = $posx0 + $vx0*$t - ($a_all*$t*$t)/2;
 	$posy = $posy0 + $vy0*$t - ($a_all*$t*$t)/2; 
     }
@@ -74,12 +74,14 @@ function get_point() {
     $query1 = "Insert into points(vx,vy,posx,posy,created,created_m) values($vx,$vy,$posx,$posy,$created,$created_m)";
     $result1 = pg_query($query1) or die('Ошибка запроса: ' . pg_last_error());
     $line2 = pg_fetch_array($result1, null, PGSQL_ASSOC);
-    
+
     pg_free_result($result);
+    pg_free_result($result1);
+    pg_free_result($result3);
 }
 function start(){
     
-    $k = 2;
+    $k = 100;
     for($i = 0;$i<$k;$i++){
 	get_point();
     }

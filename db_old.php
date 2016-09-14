@@ -21,7 +21,7 @@ function get_point() {
     $created_m = $c_m['usec'];
     var_dump($created_m);
 	    
-    $query_time = "Insert into points_property(a,created,at) values($a_add,$created,$at_add)";
+    $query_time = "Insert into points_property(an,created,at) values($a_add,$created,$at_add)";
     $result3 = pg_query($query_time) or die('Ошибка запроса: ' . pg_last_error());
     
     $vx0 = $line['vx'];
@@ -75,7 +75,7 @@ function get_point() {
 }
 function start(){
     
-    $k = 1000;
+    $k = 1;
     for($i = 0;$i<$k;$i++){
 	get_point();
     }

@@ -1,89 +1,62 @@
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <?php
 
-function connect() {
-
-    $conn_string = "dbname=grid user=postgres password=123456";
-    $dbconn3 = pg_connect($conn_string)
-	    or die('Could not connect: ' . pg_last_error());
+function connection() {
+    $connection = mysql_connect('localhost', 'root', '') 
+	    or die('Ошибка соединения: ' . mysql_error());
+    
+    mysql_select_db('point', $connection) 
+	    or die('Could not select database.');
+    
+    echo 'Есть connection';
 }
 
-function get_point() {
-    connect();
-    $query = 'SELECT * FROM points order by created desc limit 1';
-    $result = pg_query($query) or die('Ошибка запроса: ' . pg_last_error());
-    $line = pg_fetch_array($result, null, PGSQL_ASSOC);
-    
-    $a_add = rand(0, 100);
-    $at_add = rand(0, 100);
-    $created = time();
-    $c_m = gettimeofday();
-    $created_m = $c_m['usec'];
-    var_dump($created_m);
-	    
-    $query_time = "Insert into points_property(a,created,at) values($a_add,$created,$at_add)";
-    $result3 = pg_query($query_time) or die('Ошибка запроса: ' . pg_last_error());
-    
-    $vx0 = $line['vx'];
-    $vy0 = $line['vy'];
-    $posx0 = $line['posx'];
-    $posy0 = $line['posy'];
-    $angl0 = $line['angl'];
-        
-    //угловое ускорение
-    $a = rand(0, 100);
-    //нормальное ускорение
-    $a_default = rand(0, 100);
-    // delta t
-    $t = 1;
-    
-    //определение скорости
-    $vx = $vx0 + $a*$t;
-    $vy = $vy0 + $a*$t;
-    
-    $a_all = sqrt($a*$a+$a_default*$a_default);
+//получаем данные на основе предыдущих 0 SQL
+function GetNext($vx0, $vy0, $posx0, $posy0, $an, $at, $ang, $dt) {
 
-    if(($vx>$vx0 && $vy>$vy0) && ($vx >= 0 && $vy >= 0)){
-	$posx = $posx0 + $vx0*$t + ($a_all*$t*$t)/2;
-	$posy = $posy0 + $vy0*$t + ($a_all*$t*$t)/2;
-    }
-    if(($vx < $vx0 || $vy<$vy0) && ($vx >= 0 && $vy >= 0)){
-	$posx = $posx0 + $vx*$t - ($a_all*$t*$t)/2;
-	$posy = $posy0 + $vy0*$t - ($a_all*$t*$t)/2;
-    }
-    else {
-	$vx = 10;
-	
-	$posx = $posx0 + $vx0*$t - ($a_all*$t*$t)/2;
-	$posy = $posy0 + $vy0*$t - ($a_all*$t*$t)/2; 
-    }
-    $angl = 1;
-    
-        
-    $result2 = new ArrayObject();
-    $result2->posx = $posx;
-    $result2->posy = $posy;
-    $result2->vx = $vx;
-    $result2->vy = $vy;
-    $result2->created = $created;
-    $result2->created_m = $created_m;
-    
-    
-    
-    
-    $query1 = "Insert into points(vx,vy,posx,posy,created,created_m) values($vx,$vy,$posx,$posy,$created,$created_m)";
-    $result1 = pg_query($query1) or die('Ошибка запроса: ' . pg_last_error());
-    $line2 = pg_fetch_array($result1, null, PGSQL_ASSOC);
+    $a_total = sqrt($at * $at + $an * $an);
 
-    pg_free_result($result);
-    pg_free_result($result1);
-    pg_free_result($result3);
-}
-function start(){
+//https://yandex.ru/images/search?text=%D0%BF%D1%80%D0%BE%D0%B5%D0%BA%D1%86%D0%B8%D1%8F%20%D0%B2%D0%B5%D0%BA%D1%82%D0%BE%D1%80%D0%B0%20%D1%83%D1%81%D0%BA%D0%BE%D1%80%D0%B5%D0%BD%D0%B8%D1%8F%20%D0%BD%D0%B0%20%D0%BE%D1%81%D1%8C&noreask=1&img_url=http%3A%2F%2Fmognovse.ru%2Fmogno%2F975%2F974870%2F974870_html_2d039d81.jpg&pos=10&rpt=simage&lr=213    
+    $ax = $a_total * cos($ang);
+    $ay = $a_total * sin($ang);
     
-    $k = 100;
-    for($i = 0;$i<$k;$i++){
-	get_point();
-    }
+    $vx = $vx0 + $ax * $dt;
+    $vy = $vy0 + $ay * $dt;
+
+    $posx = $posx0 + $vx0 * $t + ($ax * $dt * $dt) / 2;
+    $posy = $posy0 + $vy0 * $t + ($ay * $dt * $dt) / 2;
+
+
+//    return [$vx, $vy, $posx, $posy, $ang];
+//    var_dump($vx, $vy, $posx, $posy, $ang);
 }
-start();
+
+//получаем данные на указанное время 2 SQL
+function GetPrev($created) {
+
+//хранить дату минуты сек в  поле инт 8
+//если записи нет в теч мин то сгенерировать
+    $query = "Select * from points where created <= $created  and created >= $created-60*1000 ORDER BY created desc limit 1";
+    $result = mysql_query($query) or die('Error' . mysql_error());
+    $line = mysql_fetch_array($result);
+
+//хранить в милисек
+    $query_a = "Select * from points_property where created <= $created ORDER BY created desc limit 1";
+    $result_a = mysql_query($query_a) or die('Error' . mysql_error());
+    $line_a = mysql_fetch_array($result_a);
+
+    $vx = $line['vx'];
+    $vy = $line['vy'];
+    $posx = $line['posx'];
+    $posy = $line['posy'];
+    $created = $line['created'];
+    $created_m = $line['created_m'];
+    $an = $line['an'];
+    $at = $line['at'];
+    $ang = $line['ang'];
+
+//    return [$vx, $vy, $posx, $posy, $created, $an, $at, $ang];
+}
+
+//по обращению получение данных на экран
+//заполнение проперти проверка ограничений vx vy posx posy
+

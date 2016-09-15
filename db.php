@@ -95,6 +95,7 @@ function getPoint($created) {
     $posy = $next['posy'];
     $ang = $next['ang'];
     
+    /*
     if($posx>100 || $posx< -100 || $posy>100 || $posy< -100){
 	if($posx>100 || $posx < -100){
 	    $vx *= -1;
@@ -102,6 +103,8 @@ function getPoint($created) {
 	    $vy *= -1;
 	}
     }
+     * 
+     */
     
     $query = "Insert into points(vx,vy,posx,posy,created,ang) values($vx,$vy,$posx,$posy,$created,$ang)";
     $result = mysql_query($query) or die('Error' . mysql_error());

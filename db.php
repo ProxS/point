@@ -37,8 +37,8 @@ function GetPrev($created) {
     
     if (empty($line)) {
 
-	$vx = rand(-50, 50);
-	$vy = rand(-50, 50);
+	$vx = rand(-10, 10);
+	$vy = rand(-10, 10);
 	$posx = rand(-10, 10);
 	$posy = rand(-10, 10);
 	$created = microtime(true)*1000;
@@ -83,14 +83,35 @@ function getPoint($created) {
     generation($created);
     $list = GetPrev($created);
     
-    $dt = ($created - $list['created'])/1000 ;
+    $dt = ($created - $list['created'])/1000;
+    
+    var_dump($dt);
     
     $next = GetNext($list['vx'], $list['vy'], $list['posx'], $list['posy'], $list['an'], $list['at'], $list['ang'], $dt);
+
+    $vx = $next['vx'];
+    $vy = $next['vy'];
+    $posx = $next['posx'];
+    $posy = $next['posy'];
+    $ang = $next['ang'];
+    
+    if($posx>100 || $posx< -100 || $posy>100 || $posy< -100){
+	if($posx>100 || $posx < -100){
+	    $vx *= -1;
+	}else {
+	    $vy *= -1;
+	}
+    }
+    
+    $query = "Insert into points(vx,vy,posx,posy,created,ang) values($vx,$vy,$posx,$posy,$created,$ang)";
+    $result = mysql_query($query) or die('Error' . mysql_error());
     
     var_dump($next);
 
     mysql_close($connection);
+    
+    return $next;
 }
-//var_dump(microtime(true)*1000);
+
 getPoint(microtime(true)*1000);
 

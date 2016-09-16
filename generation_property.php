@@ -2,14 +2,14 @@
 
 define('MIN_A', 0);
 define('MAX_A', 10);
-define('MIN_W', -10);
-define('MAX_W', 10);
+define('MIN_ANG', 0);
+define('MAX_ANG', 360);
 
 function generation ($created) {
     
     $an = rand(MIN_A, MAX_A);
     $at = rand(MIN_A, MAX_A);
-    $ang = rand(MIN_W, MAX_W);
+    $ang = rand(MIN_ANG, MAX_ANG);
     
     $query = "Insert into points_property values($an,$at,$created,$ang)";
     $result = mysql_query($query) or die('Error' . mysql_error());

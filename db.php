@@ -70,17 +70,13 @@ function CreatePoint() {
 function ArcTangens($vx, $vy, $ang) {
     if ($vx > 0) {
 	$ang = atan($vy / $vx);
-    } 
-    elseif ($vx < 0 && $vy >= 0) {
+    } elseif ($vx < 0 && $vy >= 0) {
 	$ang = atan($vy / $vx) + M_PI;
-    } 
-    elseif ($vx < 0 && $vy < 0) {
+    } elseif ($vx < 0 && $vy < 0) {
 	$ang = atan($vy / $vx) - M_PI;
-    } 
-    elseif ($vx == 0 && $vy >= 0) {
+    } elseif ($vx == 0 && $vy >= 0) {
 	$ang = M_PI;
-    } 
-    elseif ($vx == 0 && $vy < 0) {
+    } elseif ($vx == 0 && $vy < 0) {
 	$ang = -M_PI;
     }
     return $ang;
